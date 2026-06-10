@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cher's Closet - Asistente de Moda</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome para Iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Pantallas de la aplicación -->
+        <main class="app-content">
+            
+            <!-- PANTALLA: CLOSET (Probador Virtual estilo Clueless) -->
+            <section id="screen-closet" class="app-screen active">
+                <header class="screen-header">
+                    <div class="header-logo">
+                        <span class="logo-accent"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+                        <h1>Cher's Closet</h1>
+                    </div>
+                    <button id="btn-suggest-outfit" class="btn-icon" title="Sugerir Outfit">
+                        <i class="fa-solid fa-lightbulb"></i>
+                    </button>
+                </header>
+                
+                <div class="closet-layout">
+                    <!-- Mitad superior: Probador (Canvas) -->
+                    <div class="canvas-container-outer">
+                        <div class="canvas-wrapper">
+                            <canvas id="outfit-canvas"></canvas>
+                            <!-- Estado vacío cuando no hay silueta -->
+                            <div id="canvas-empty-state" class="canvas-overlay-state hidden">
+                                <i class="fa-solid fa-user-tie"></i>
+                                <p>Configura tu foto de referencia en "Perfil" para usar el probador</p>
+                                <button id="btn-go-to-profile-empty" class="btn btn-secondary btn-sm">Calibrar Cuerpo</button>
+                            </div>
+                            <!-- Cargando -->
+                            <div id="canvas-loading" class="canvas-overlay-state hidden">
+                                <div class="spinner"></div>
+                                <p>Procesando imagen...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mitad inferior: Carruseles deslizantes -->
+                    <div class="carousels-container">
+                        <!-- Categoría: Superiores -->
+                        <div class="carousel-section">
+                            <div class="carousel-header">
+                                <h2>Partes Superiores</h2>
+                                <span id="label-top-name" class="item-name-badge">Ninguna</span>
+                            </div>
+                            <div class="carousel-nav-wrapper">
+                                <button id="btn-top-prev" class="btn-carousel-nav"><i class="fa-solid fa-chevron-left"></i></button>
+                                <div class="carousel-track-container">
+                                    <div id="track-tops" class="carousel-track">
+                                        <!-- Las prendas superiores se inyectan aquí -->
+                                    </div>
+                                </div>
+                                <button id="btn-top-next" class="btn-carousel-nav"><i class="fa-solid fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Categoría: Inferiores -->
+                        <div class="carousel-section">
+                            <div class="carousel-header">
+                                <h2>Partes Inferiores</h2>
+                                <span id="label-bottom-name" class="item-name-badge">Ninguna</span>
+                            </div>
+                            <div class="carousel-nav-wrapper">
+                                <button id="btn-bottom-prev" class="btn-carousel-nav"><i class="fa-solid fa-chevron-left"></i></button>
+                                <div class="carousel-track-container">
+                                    <div id="track-bottoms" class="carousel-track">
+                                        <!-- Las prendas inferiores se inyectan aquí -->
+                                    </div>
+                                </div>
+                                <button id="btn-bottom-next" class="btn-carousel-nav"><i class="fa-solid fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PANTALLA: ARMARIO (Subir Prendas) -->
+            <section id="screen-armario" class="app-screen">
+                <header class="screen-header">
+                    <h1>Añadir Prenda</h1>
+                </header>
+                <div class="form-container">
+                    <!-- Carga de archivo o cámara -->
+                    <div class="image-uploader">
+                        <input type="file" id="input-garment-file" accept="image/*" class="hidden">
+                        <label for="input-garment-file" id="garment-upload-area" class="upload-area">
+                            <i class="fa-solid fa-camera-retro"></i>
+                            <span>Toma una foto de tu prenda</span>
+                            <small>Sube la prenda sobre un fondo liso para mejores resultados</small>
+                        </label>
+                        <div id="garment-preview-container" class="preview-container hidden">
+                            <img id="garment-preview-img" src="" alt="Prenda subida">
+                            <button id="btn-remove-garment-img" class="btn-remove-img"><i class="fa-solid fa-xmark"></i></button>
+                            <div id="garment-processing-badge" class="processing-badge hidden">
+                                <i class="fa-solid fa-circle-notch fa-spin"></i> Eliminando fondo...
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detalles de la prenda -->
+                    <div class="form-group">
+                        <label>Categoría</label>
+                        <div class="radio-group">
+                            <label class="radio-btn">
+                                <input type="radio" name="garment-category" value="top" checked>
+                                <span>Parte Superior</span>
+                            </label>
+                            <label class="radio-btn">
+                                <input type="radio" name="garment-category" value="bottom">
+                                <span>Parte Inferior</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="input-garment-name">Nombre de la prenda</label>
+                        <input type="text" id="input-garment-name" placeholder="Ej: Camisa Leñadora Roja, Jeans Azules">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label for="select-garment-style">Estilo</label>
+                            <select id="select-garment-style">
+                                <option value="casual">Casual</option>
+                                <option value="formal">Formal</option>
+                                <option value="deportivo">Deportivo</option>
+                                <option value="fiesta">Fiesta</option>
+                            </select>
+                        </div>
+                        <div class="form-group half">
+                            <label for="select-garment-weather">Clima</label>
+                            <select id="select-garment-weather">
+                                <option value="calido">Cálido (Verano)</option>
+                                <option value="templado">Templado (Otoño/Primavera)</option>
+                                <option value="frio">Frío (Invierno)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="input-garment-color">Color principal</label>
+                        <input type="color" id="input-garment-color" value="#8f9e8b">
+                    </div>
+
+                    <div class="form-actions">
+                        <button id="btn-save-garment" class="btn btn-primary btn-block" disabled>Guardar en mi Armario</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PANTALLA: PERFIL/CALIBRACIÓN -->
+            <section id="screen-profile" class="app-screen">
+                <header class="screen-header">
+                    <h1>Tu Silueta de Referencia</h1>
+                </header>
+                <div class="profile-container">
+                    <div class="instruction-box">
+                        <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Detección Automática por IA</h3>
+                        <p>1. Sube una foto tuya de cuerpo completo, de frente y bien iluminado.</p>
+                        <p>2. La IA detectará automáticamente tu silueta (hombros, cadera, rodillas y tobillos) para ajustar la ropa de forma natural.</p>
+                    </div>
+
+                    <div class="calibrator-outer" style="position: relative;">
+                        <input type="file" id="input-profile-file" accept="image/*" class="hidden">
+                        <label for="input-profile-file" id="profile-upload-area" class="upload-area">
+                            <i class="fa-solid fa-image-portrait"></i>
+                            <span>Subir foto de cuerpo completo</span>
+                        </label>
+                        
+                        <!-- Cargando IA -->
+                        <div id="calibration-loading-overlay" class="canvas-overlay-state hidden" style="border-radius: var(--border-radius-lg);">
+                            <div class="spinner"></div>
+                            <p>La IA está analizando tu silueta y detectando puntos de anclaje...</p>
+                        </div>
+
+                        <div id="calibration-canvas-wrapper" class="calibration-wrapper hidden">
+                            <img id="calibration-img" src="" alt="Silueta a calibrar">
+                            <div id="calibration-points-container" class="points-container">
+                                <!-- Los puntos se renderizarán dinámicamente aquí -->
+                            </div>
+                            <div class="calibration-indicator">
+                                Estado: <strong id="current-point-guide">Listo</strong>
+                            </div>
+                            <button id="btn-reset-calibration" class="btn-reset-points" title="Reiniciar puntos"><i class="fa-solid fa-arrow-rotate-left"></i> Calibrar Manual</button>
+                        </div>
+                    </div>
+
+                    <div class="profile-actions">
+                        <button id="btn-save-profile" class="btn btn-primary btn-block" disabled>Guardar Silueta Calibrada</button>
+                        <button id="btn-delete-profile" class="btn btn-danger btn-block hidden">Eliminar Silueta Actual</button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Barra de navegación inferior móvil -->
+        <nav class="app-nav">
+            <button id="nav-closet" class="nav-item active">
+                <i class="fa-solid fa-shirt"></i>
+                <span>Probador</span>
+            </button>
+            <button id="nav-armario" class="nav-item">
+                <i class="fa-solid fa-plus"></i>
+                <span>Subir Ropa</span>
+            </button>
+            <button id="nav-profile" class="nav-item">
+                <i class="fa-solid fa-user"></i>
+                <span>Perfil</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- MODAL: Sugerencia de Outfit Inteligente -->
+    <div id="modal-suggestion" class="modal-overlay hidden">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2>¿Qué te vas a poner hoy?</h2>
+                <button id="btn-close-modal" class="btn-close"><i class="fa-solid fa-xmark"></i></button>
+            </header>
+            <div class="modal-body">
+                <div class="filter-group">
+                    <label>¿Qué estilo buscas?</label>
+                    <div class="filter-chips">
+                        <button class="chip active" data-filter="style" data-value="any">Todos</button>
+                        <button class="chip" data-filter="style" data-value="casual">Casual</button>
+                        <button class="chip" data-filter="style" data-value="formal">Formal</button>
+                        <button class="chip" data-filter="style" data-value="deportivo">Deportivo</button>
+                        <button class="chip" data-filter="style" data-value="fiesta">Fiesta</button>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label>¿Cómo está el clima?</label>
+                    <div class="filter-chips">
+                        <button class="chip active" data-filter="weather" data-value="any">Todos</button>
+                        <button class="chip" data-filter="weather" data-value="calido">Cálido ☀️</button>
+                        <button class="chip" data-filter="weather" data-value="templado">Templado ⛅</button>
+                        <button class="chip" data-filter="weather" data-value="frio">Frío ❄️</button>
+                    </div>
+                </div>
+
+                <button id="btn-generate-outfit" class="btn btn-primary btn-block"><i class="fa-solid fa-wand-magic-sparkles"></i> Sugerir Outfit Perfecto</button>
+                
+                <div id="suggestion-result" class="suggestion-result-box hidden">
+                    <div class="suggestion-match-details">
+                        <p id="suggestion-message">¡Hemos encontrado la combinación perfecta!</p>
+                        <div class="match-tags">
+                            <span id="match-tag-style" class="badge">Casual</span>
+                            <span id="match-tag-weather" class="badge">Cálido</span>
+                        </div>
+                    </div>
+                    <div class="suggestion-actions">
+                        <button id="btn-apply-suggestion" class="btn btn-secondary btn-block">Aplicar en el Probador</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TensorFlow.js y PoseNet CDN para Detección de Silueta por IA -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2.2.2/dist/posenet.min.js"></script>
+
+    <!-- Script de inicialización SPA -->
+    <script type="module" src="src/app.js"></script>
+</body>
+</html>
