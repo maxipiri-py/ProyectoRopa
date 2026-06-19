@@ -22,6 +22,34 @@ export function initCanvas() {
     // Manejar el redimensionamiento dinámico
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
+
+    // Conectar botón de descargar outfit
+    const btnDownload = document.getElementById('btn-download-outfit');
+    if (btnDownload) {
+        btnDownload.addEventListener('click', downloadOutfit);
+    }
+}
+
+function downloadOutfit() {
+    if (!canvas) return;
+    
+    if (!bodyImage) {
+        alert("Por favor, configura tu silueta en la pestaña de Perfil antes de descargar un outfit.");
+        return;
+    }
+    
+    try {
+        const dataURL = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = `outfit_${Date.now()}.png`;
+        link.href = dataURL;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } catch (err) {
+        console.error("Error al descargar la imagen:", err);
+        alert("No se pudo descargar la imagen directamente. Si estás en celular, puedes intentar mantener presionada la imagen para guardarla.");
+    }
 }
 
 function resizeCanvas() {
