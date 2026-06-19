@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cher's Closet - Asistente de Moda</title>
+    <title>TeViste - Asistente de Moda</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,7 +22,7 @@
                 <header class="screen-header">
                     <div class="header-logo">
                         <span class="logo-accent"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
-                        <h1>Cher's Closet</h1>
+                        <h1>TeViste</h1>
                     </div>
                     <div class="header-actions" style="display: flex; gap: 8px;">
                         <button id="btn-suggest-outfit" class="btn-icon" title="Sugerir Outfit">
@@ -92,76 +92,32 @@
                 </div>
             </section>
 
-            <!-- PANTALLA: ARMARIO (Subir Prendas) -->
+            <!-- PANTALLA: ARMARIO (Mi Ropero) -->
             <section id="screen-armario" class="app-screen">
                 <header class="screen-header">
-                    <h1>Añadir Prenda</h1>
+                    <h1>Mi Ropero</h1>
                 </header>
-                <div class="form-container">
-                    <!-- Carga de archivo o cámara -->
-                    <div class="image-uploader">
-                        <input type="file" id="input-garment-file" accept="image/*" class="hidden">
-                        <label for="input-garment-file" id="garment-upload-area" class="upload-area">
-                            <i class="fa-solid fa-camera-retro"></i>
-                            <span>Toma una foto de tu prenda</span>
-                            <small>Sube la prenda sobre un fondo liso para mejores resultados</small>
-                        </label>
-                        <div id="garment-preview-container" class="preview-container hidden">
-                            <img id="garment-preview-img" src="" alt="Prenda subida">
-                            <button id="btn-remove-garment-img" class="btn-remove-img"><i class="fa-solid fa-xmark"></i></button>
-                            <div id="garment-processing-badge" class="processing-badge hidden">
-                                <i class="fa-solid fa-circle-notch fa-spin"></i> Eliminando fondo...
-                            </div>
+                <div class="ropero-container" style="padding: 0 24px 24px 24px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; flex: 1;">
+                    <!-- Sección Superior -->
+                    <div class="ropero-section" style="display: flex; flex-direction: column; gap: 8px;">
+                        <div class="carousel-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <h2 style="font-size: 13px; font-weight: 600; color: var(--color-text-light); text-transform: uppercase; letter-spacing: 0.5px;">Prendas Superiores</h2>
+                            <button id="btn-add-top" class="btn btn-secondary" style="padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; border: none; background-color: var(--color-secondary); color: var(--color-text-dark); transition: var(--transition-smooth);"><i class="fa-solid fa-plus"></i> Añadir</button>
+                        </div>
+                        <div id="ropero-tops-gallery" class="ropero-gallery" style="display: flex; gap: 12px; overflow-x: auto; padding: 10px; min-height: 100px; background-color: var(--bg-primary); border-radius: var(--border-radius-md); box-shadow: var(--shadow-inset); align-items: center; scroll-behavior: smooth;">
+                            <!-- Galería de prendas superiores -->
                         </div>
                     </div>
 
-                    <!-- Detalles de la prenda -->
-                    <div class="form-group">
-                        <label>Categoría</label>
-                        <div class="radio-group">
-                            <label class="radio-btn">
-                                <input type="radio" name="garment-category" value="top" checked>
-                                <span>Parte Superior</span>
-                            </label>
-                            <label class="radio-btn">
-                                <input type="radio" name="garment-category" value="bottom">
-                                <span>Parte Inferior</span>
-                            </label>
+                    <!-- Sección Inferior -->
+                    <div class="ropero-section" style="display: flex; flex-direction: column; gap: 8px;">
+                        <div class="carousel-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <h2 style="font-size: 13px; font-weight: 600; color: var(--color-text-light); text-transform: uppercase; letter-spacing: 0.5px;">Prendas Inferiores</h2>
+                            <button id="btn-add-bottom" class="btn btn-secondary" style="padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; border: none; background-color: var(--color-secondary); color: var(--color-text-dark); transition: var(--transition-smooth);"><i class="fa-solid fa-plus"></i> Añadir</button>
                         </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="input-garment-name">Nombre de la prenda</label>
-                        <input type="text" id="input-garment-name" placeholder="Ej: Camisa Leñadora Roja, Jeans Azules">
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group half">
-                            <label for="select-garment-style">Estilo</label>
-                            <select id="select-garment-style">
-                                <option value="casual">Casual</option>
-                                <option value="formal">Formal</option>
-                                <option value="deportivo">Deportivo</option>
-                                <option value="fiesta">Fiesta</option>
-                            </select>
+                        <div id="ropero-bottoms-gallery" class="ropero-gallery" style="display: flex; gap: 12px; overflow-x: auto; padding: 10px; min-height: 100px; background-color: var(--bg-primary); border-radius: var(--border-radius-md); box-shadow: var(--shadow-inset); align-items: center; scroll-behavior: smooth;">
+                            <!-- Galería de prendas inferiores -->
                         </div>
-                        <div class="form-group half">
-                            <label for="select-garment-weather">Clima</label>
-                            <select id="select-garment-weather">
-                                <option value="calido">Cálido (Verano)</option>
-                                <option value="templado">Templado (Otoño/Primavera)</option>
-                                <option value="frio">Frío (Invierno)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="input-garment-color">Color principal</label>
-                        <input type="color" id="input-garment-color" value="#8f9e8b">
-                    </div>
-
-                    <div class="form-actions">
-                        <button id="btn-save-garment" class="btn btn-primary btn-block" disabled>Guardar en mi Armario</button>
                     </div>
                 </div>
             </section>
@@ -219,8 +175,8 @@
                 <span>Probador</span>
             </button>
             <button id="nav-armario" class="nav-item">
-                <i class="fa-solid fa-plus"></i>
-                <span>Subir Ropa</span>
+                <i class="fa-solid fa-folder-open"></i>
+                <span>Ropero</span>
             </button>
             <button id="nav-profile" class="nav-item">
                 <i class="fa-solid fa-user"></i>
@@ -272,6 +228,69 @@
                         <button id="btn-apply-suggestion" class="btn btn-secondary btn-block">Aplicar en el Probador</button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Subir Prenda a TeViste -->
+    <div id="modal-upload" class="modal-overlay hidden">
+        <div class="modal-content" style="max-height: 90%;">
+            <header class="modal-header">
+                <h2 id="modal-upload-title">Añadir Prenda</h2>
+                <button id="btn-close-upload-modal" class="btn-close"><i class="fa-solid fa-xmark"></i></button>
+            </header>
+            <div class="modal-body" style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+                <!-- Carga de archivo o cámara -->
+                <div class="image-uploader">
+                    <input type="file" id="input-garment-file" accept="image/*" class="hidden">
+                    <label for="input-garment-file" id="garment-upload-area" class="upload-area">
+                        <i class="fa-solid fa-camera-retro"></i>
+                        <span>Toma una foto de tu prenda</span>
+                        <small>Sube la prenda sobre un fondo liso para mejores resultados</small>
+                    </label>
+                    <div id="garment-preview-container" class="preview-container hidden">
+                        <img id="garment-preview-img" src="" alt="Prenda subida">
+                        <button id="btn-remove-garment-img" class="btn-remove-img"><i class="fa-solid fa-xmark"></i></button>
+                        <div id="garment-processing-badge" class="processing-badge hidden">
+                            <i class="fa-solid fa-circle-notch fa-spin"></i> Eliminando fondo...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detalles de la prenda (categoría oculta / preestablecida) -->
+                <input type="hidden" id="hidden-garment-category" value="top">
+
+                <div class="form-group">
+                    <label for="input-garment-name">Nombre de la prenda</label>
+                    <input type="text" id="input-garment-name" placeholder="Ej: Camisa Roja, Jeans Azules">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label for="select-garment-style">Estilo</label>
+                        <select id="select-garment-style">
+                            <option value="casual">Casual</option>
+                            <option value="formal">Formal</option>
+                            <option value="deportivo">Deportivo</option>
+                            <option value="fiesta">Fiesta</option>
+                        </select>
+                    </div>
+                    <div class="form-group half">
+                        <label for="select-garment-weather">Clima</label>
+                        <select id="select-garment-weather">
+                            <option value="calido">Cálido ☀️</option>
+                            <option value="templado">Templado ⛅</option>
+                            <option value="frio">Frío ❄️</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="input-garment-color">Color principal</label>
+                    <input type="color" id="input-garment-color" value="#8f9e8b">
+                </div>
+
+                <button id="btn-save-garment" class="btn btn-primary btn-block" disabled>Guardar en mi Ropero</button>
             </div>
         </div>
     </div>

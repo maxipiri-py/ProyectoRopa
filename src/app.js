@@ -87,7 +87,7 @@ function switchScreen(screenName) {
 async function refreshProfileState() {
     try {
         const profile = await getProfile();
-        if (profile && profile.image && profile.points && profile.points.length >= 8) {
+        if (profile && profile.image && profile.points && profile.points.some(p => p !== null)) {
             // Silueta disponible y calibrada: cargarla en canvas y ocultar vacío
             setProfileData(profile.image, profile.points);
             canvasEmptyState.classList.add('hidden');

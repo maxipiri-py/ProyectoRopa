@@ -141,7 +141,10 @@ function draw() {
     ctx.drawImage(bodyImage, drawX, drawY, drawW, drawH);
 
     // Si no hay puntos de calibración, no podemos dibujar la ropa con precisión
-    if (!calibrationPoints || calibrationPoints.length < 8) return;
+    if (!calibrationPoints || !calibrationPoints.some(p => p !== null)) return;
+
+    // Obtener silueta completa estimada
+    const filledPoints = getCompletePoints(calibrationPoints);
 
     // Convertir puntos porcentuales a coordenadas reales en el canvas
     const getRealCoords = (pt) => {
@@ -151,14 +154,14 @@ function draw() {
         };
     };
 
-    const ptHombroIzq = getRealCoords(calibrationPoints[0]);
-    const ptHombroDer = getRealCoords(calibrationPoints[1]);
-    const ptCaderaIzq = getRealCoords(calibrationPoints[2]);
-    const ptCaderaDer = getRealCoords(calibrationPoints[3]);
-    const ptRodillaIzq = getRealCoords(calibrationPoints[4]);
-    const ptRodillaDer = getRealCoords(calibrationPoints[5]);
-    const ptTobilloIzq = getRealCoords(calibrationPoints[6]);
-    const ptTobilloDer = getRealCoords(calibrationPoints[7]);
+    const ptHombroIzq = getRealCoords(filledPoints[0]);
+    const ptHombroDer = getRealCoords(filledPoints[1]);
+    const ptCaderaIzq = getRealCoords(filledPoints[2]);
+    const ptCaderaDer = getRealCoords(filledPoints[3]);
+    const ptRodillaIzq = getRealCoords(filledPoints[4]);
+    const ptRodillaDer = getRealCoords(filledPoints[5]);
+    const ptTobilloIzq = getRealCoords(filledPoints[6]);
+    const ptTobilloDer = getRealCoords(filledPoints[7]);
 
     // Calcular centros y dimensiones del cuerpo
     const shoulderWidth = Math.abs(ptHombroDer.x - ptHombroIzq.x);
@@ -223,4 +226,132 @@ function draw() {
 
         ctx.drawImage(topImage, x, y, topW, topH);
     }
+}
+
+// Función de utilidad para reconstruir una silueta completa a partir de puntos marcados
+function getCompletePoints(points) {
+    const template = [
+        { dx: -0.12, dy: 0.0 },   // Left Shoulder (0)
+        { dx: 0.12, dy: 0.0 },    // Right Shoulder (1)
+        { dx: -0.10, dy: 0.22 },  // Left Hip (2)
+        { dx: 0.10, dy: 0.22 },   // Right Hip (3)
+        { dx: -0.08, dy: 0.40 },  // Left Knee (4)
+        { dx: 0.08, dy: 0.40 },   // Right Knee (5)
+        { dx: -0.07, dy: 0.58 },  // Left Ankle (6)
+        { dx: 0.07, dy: 0.58 }    // Right Ankle (7)
+    ];
+
+    if (!points) {
+        return template.map(t => ({
+            x: 0.5 + t.dx,
+            y: 0.35 + t.dy
+        }));
+    }
+
+    const pts = [...points];
+    while (pts.length < 8) pts.push(null);
+
+    const present = [];
+    for (let i = 0; i < 8; i++) {
+        if (pts[i] !== null && pts[i] !== undefined) {
+            present.push({
+                index: i,
+                pt: pts[i],
+                tpl: template[i]
+            });
+        }
+    }
+
+    let originX = 0.5;
+    let originY = 0.35;
+    let scaleX = 1.0;
+    let scaleY = 1.0;
+
+    if (present.length === 0) {
+        return template.map(t => ({
+            x: originX + t.dx * scaleX,
+            y: originY + t.dy * scaleY
+        }));
+    }
+
+    // Estimar centro X del cuerpo
+    let sumCenterX = 0;
+    let countCenterX = 0;
+    for (let i = 0; i < 8; i += 2) {
+        const l = present.find(p => p.index === i);
+        const r = present.find(p => p.index === i + 1);
+        if (l && r) {
+            sumCenterX += (l.pt.x + r.pt.x) / 2;
+            countCenterX++;
+        }
+    }
+    if (countCenterX > 0) {
+        originX = sumCenterX / countCenterX;
+    } else {
+        let sumX = 0;
+        present.forEach(p => {
+            sumX += (p.pt.x - p.tpl.dx);
+        });
+        originX = sumX / present.length;
+    }
+
+    // Estimar alineación Y y escala Y
+    let minY = Infinity, maxY = -Infinity;
+    let minPtY = null, maxPtY = null;
+    present.forEach(p => {
+        if (p.tpl.dy < minY) { minY = p.tpl.dy; minPtY = p.pt.y; }
+        if (p.tpl.dy > maxY) { maxY = p.tpl.dy; maxPtY = p.pt.y; }
+    });
+
+    if (maxY - minY > 0.05) {
+        scaleY = (maxPtY - minPtY) / (maxY - minY);
+        let sumOriginY = 0;
+        present.forEach(p => {
+            sumOriginY += (p.pt.y - p.tpl.dy * scaleY);
+        });
+        originY = sumOriginY / present.length;
+    } else {
+        let sumOriginY = 0;
+        present.forEach(p => {
+            sumOriginY += (p.pt.y - p.tpl.dy * scaleY);
+        });
+        originY = sumOriginY / present.length;
+    }
+
+    // Estimar escala X
+    let sumWidthScale = 0;
+    let countWidthScale = 0;
+    for (let i = 0; i < 8; i += 2) {
+        const l = present.find(p => p.index === i);
+        const r = present.find(p => p.index === i + 1);
+        if (l && r) {
+            const actualW = Math.abs(r.pt.x - l.pt.x);
+            const tplW = Math.abs(r.tpl.dx - l.tpl.dx);
+            sumWidthScale += actualW / tplW;
+            countWidthScale++;
+        }
+    }
+    if (countWidthScale > 0) {
+        scaleX = sumWidthScale / countWidthScale;
+    } else {
+        scaleX = scaleY;
+    }
+
+    // Limites de escala para evitar deformaciones
+    if (scaleX < 0.15 || scaleX > 2.5) scaleX = 1.0;
+    if (scaleY < 0.15 || scaleY > 2.5) scaleY = 1.0;
+
+    const result = [];
+    for (let i = 0; i < 8; i++) {
+        const p = present.find(p => p.index === i);
+        if (p) {
+            result.push(p.pt);
+        } else {
+            result.push({
+                x: originX + template[i].dx * scaleX,
+                y: originY + template[i].dy * scaleY
+            });
+        }
+    }
+    return result;
 }

@@ -12,9 +12,8 @@ const POINT_NAMES = [
     'Tobillo Derecho'
 ];
 
-let calibrationPoints = []; // Almacenará { x: 0..1, y: 0..1 }
+let calibrationPoints = Array(8).fill(null); // Almacenará { x: 0..1, y: 0..1 } o null
 let loadedImageBase64 = null;
-let currentStep = 0;
 
 // Elementos DOM
 let uploadArea = null;
@@ -56,11 +55,12 @@ export function initCalibrator(onProfileChanged) {
 }
 
 async function loadExistingProfile() {
-    try {
         const profile = await getProfile();
         if (profile) {
             loadedImageBase64 = profile.image;
-            calibrationPoints = profile.points;
+            // Asegurar que tiene longitud 8
+            calibrationPoints = profile.points || Array(8).fill(null);
+            while (calibrationPoints.length < 8) calibrationPoints.push(null);
             
             // Mostrar imagen cargada
             imgElement.src = loadedImageBase64;
@@ -71,16 +71,12 @@ async function loadExistingProfile() {
             renderSavedPoints();
             
             // Habilitar controles correspondientes
-            currentStep = calibrationPoints.length;
             updateCalibrationUI();
             btnDelete.classList.remove('hidden');
         } else {
             resetCalibration();
             btnDelete.classList.add('hidden');
         }
-    } catch (e) {
-        console.error('Error al cargar perfil:', e);
-    }
 }
 
 function handleFileSelect(event) {
@@ -155,8 +151,9 @@ async function runPoseNetDetection() {
     const w = imgElement.naturalWidth;
     const h = imgElement.naturalHeight;
 
-    calibrationPoints = [];
+    calibrationPoints = Array(8).fill(null);
     pointsContainer.innerHTML = '';
+    let detectedCount = 0;
 
     requiredParts.forEach((part, index) => {
         const kp = findKeypoint(part);
@@ -164,19 +161,26 @@ async function runPoseNetDetection() {
         if (kp && kp.score > 0.15) {
             const x = kp.position.x / w;
             const y = kp.position.y / h;
-            calibrationPoints.push({ x, y });
+            calibrationPoints[index] = { x, y };
             drawPointMarker(x, y, index + 1);
-        } else {
-            throw new Error(`Punto débil o faltante: ${part}`);
+            detectedCount++;
         }
     });
 
-    currentStep = 8;
     updateCalibrationUI();
+    
+    if (detectedCount === 0) {
+        alert("La IA no pudo detectar ningún punto de tu cuerpo automáticamente. Por favor, marca los puntos manualmente haciendo clic sobre la foto.");
+    } else if (detectedCount < 8) {
+        alert(`La IA detectó automáticamente ${detectedCount} de 8 puntos. Puedes marcar los puntos restantes haciendo clic en las partes del cuerpo indicadas en la guía.`);
+    } else {
+        alert("¡La IA detectó todos los puntos de tu silueta correctamente!");
+    }
 }
 
 function handleImageClick(event) {
-    if (currentStep >= 8) return; // Ya se completaron los 8 puntos
+    const nextIndex = calibrationPoints.findIndex(pt => pt === null);
+    if (nextIndex === -1) return; // Todos los puntos colocados
 
     // Obtener dimensiones reales del contenedor del canvas/imagen de calibración
     const rect = pointsContainer.getBoundingClientRect();
@@ -186,12 +190,11 @@ function handleImageClick(event) {
     const y = (event.clientY - rect.top) / rect.height;
 
     // Agregar punto
-    calibrationPoints.push({ x, y });
+    calibrationPoints[nextIndex] = { x, y };
     
     // Crear marcador visual
-    drawPointMarker(x, y, currentStep + 1);
+    drawPointMarker(x, y, nextIndex + 1);
 
-    currentStep++;
     updateCalibrationUI();
 }
 
@@ -207,30 +210,37 @@ function drawPointMarker(xPercent, yPercent, number) {
 function renderSavedPoints() {
     pointsContainer.innerHTML = '';
     calibrationPoints.forEach((pt, index) => {
-        drawPointMarker(pt.x, pt.y, index + 1);
+        if (pt !== null && pt !== undefined) {
+            drawPointMarker(pt.x, pt.y, index + 1);
+        }
     });
 }
 
 function updateCalibrationUI() {
-    if (currentStep < 8) {
+    const nextIndex = calibrationPoints.findIndex(pt => pt === null);
+    
+    if (nextIndex !== -1) {
         guideText.parentElement.classList.remove('hidden');
-        guideText.innerText = POINT_NAMES[currentStep];
-        btnSave.disabled = true;
+        guideText.innerText = POINT_NAMES[nextIndex];
     } else {
         guideText.parentElement.classList.add('hidden');
-        btnSave.disabled = false; // Habilita guardar
     }
+
+    // Guardar se habilita con al menos un punto y la imagen
+    const hasImage = loadedImageBase64 !== null;
+    const hasSomePoints = calibrationPoints.some(pt => pt !== null);
+    btnSave.disabled = !(hasImage && hasSomePoints);
 }
 
 function resetCalibration() {
-    calibrationPoints = [];
-    currentStep = 0;
+    calibrationPoints = Array(8).fill(null);
     pointsContainer.innerHTML = '';
     updateCalibrationUI();
 }
 
 async function handleSaveProfile() {
-    if (calibrationPoints.length < 8 || !loadedImageBase64) return;
+    const hasSomePoints = calibrationPoints.some(pt => pt !== null);
+    if (!hasSomePoints || !loadedImageBase64) return;
 
     try {
         await saveProfile(loadedImageBase64, calibrationPoints);
@@ -248,8 +258,7 @@ async function handleDeleteProfile() {
     try {
         await deleteProfile();
         loadedImageBase64 = null;
-        calibrationPoints = [];
-        currentStep = 0;
+        calibrationPoints = Array(8).fill(null);
         
         // Limpiar UI
         pointsContainer.innerHTML = '';

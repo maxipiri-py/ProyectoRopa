@@ -1,5 +1,5 @@
 // --- MÓDULO DE BASE DE DATOS LOCAL (IndexedDB) ---
-const DB_NAME = 'ChersClosetDB';
+const DB_NAME = 'TeVisteDB';
 const DB_VERSION = 1;
 
 let dbInstance = null;
