@@ -55,6 +55,7 @@ export function initCalibrator(onProfileChanged) {
 }
 
 async function loadExistingProfile() {
+    try {
         const profile = await getProfile();
         if (profile) {
             loadedImageBase64 = profile.image;
@@ -77,6 +78,9 @@ async function loadExistingProfile() {
             resetCalibration();
             btnDelete.classList.add('hidden');
         }
+    } catch (e) {
+        console.error('Error al cargar perfil:', e);
+    }
 }
 
 function handleFileSelect(event) {
