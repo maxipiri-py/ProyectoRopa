@@ -1,3 +1,16 @@
+// Registrador global de errores para depuración en producción
+window.onerror = function (message, source, lineno, colno, error) {
+    const errorMsg = `Error: ${message}\nSource: ${source}:${lineno}:${colno}`;
+    alert("[Error Global de TeViste]:\n" + errorMsg);
+    console.error(error);
+    return false;
+};
+
+window.onunhandledrejection = function (event) {
+    alert("[Error Promesa de TeViste]:\n" + event.reason);
+    console.error(event.reason);
+};
+
 import { initCanvas, setProfileData } from './components/canvas.js';
 import { initCalibrator } from './components/calibrator.js';
 import { initArmario } from './components/armario.js';
